@@ -92,7 +92,7 @@ def extract_names(filename):
             # if name exists in dict, assign key a value of highest rank found
             elif int(ranking) < int(baby_dict[name]):
                 baby_dict[name] = ranking
-    # clear out names dictionary
+    # clear out names list
     names = []
     # create list of tuples from dictionary
     dict_list = baby_dict.items()
