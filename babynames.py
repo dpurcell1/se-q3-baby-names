@@ -7,6 +7,15 @@
 # Licensed under the Apache License, Version 2.0
 # http://www.apache.org/licenses/LICENSE-2.0
 
+__author__ = """Darrell Purcell with help from
+http://www.python-ds.com/python-3-list-methods
+https://www.youtube.com
+/watch?v=Uh2ebFW8OYM&list=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU&index=26&t=0s
+https://www.guru99.com/python-regular-expressions-complete-tutorial.html
+https://www.codespeedy.com/convert-a-dictionary-into-a-list-in-python/
+and Daniel's Argparse Demo
+"""
+
 """
 Define the extract_names() function below and change main()
 to call it.
@@ -43,8 +52,57 @@ def extract_names(filename):
     the name-rank strings in alphabetical order.
     ['2006', 'Aaliyah 91', 'Aaron 57', 'Abagail 895', ...]
     """
+    # create empty dict and set initialize year value
     names = []
-    # +++your code here+++
+    baby_dict = {}
+    year = None
+    # define year and name regex patterns to match in html files
+    year_regex = re.compile(r'(Popularity in \d{4})')
+    name_rank_regex = re.compile(
+        r'<(tr\s\w+="\w+"><td>)(\d+)(</td><td>)(\w+)(</td><td>)(\w+)(</td>)')
+    # create file reader to scan html file line by line
+    with open(filename, 'r') as f:
+        for line in f:
+            # assign pattern matches for year and name/rank to variables
+            # year_match returns list
+            year_match = re.findall(year_regex, line)
+            # rank_match returns string
+            rank_match = re.match(name_rank_regex, line)
+            # extract year from year_match list via slicing
+            if year_match:
+                year = year_match[0][-4:]
+            # create string of rank/match pairs and append to names list
+            if rank_match:
+                names.append(rank_match.group(4) + ' ' + rank_match.group(2))
+                names.append(rank_match.group(6) + ' ' + rank_match.group(2))
+    # define rank regex pattern to match in names list
+    rank_regex = re.compile(r'(\w+\s)(\d+)')
+    # sort names list alphabetically
+    names.sort()
+    # find rank pattern in every list item
+    for name in names:
+        rank = re.match(rank_regex, name)
+        # when found, assign name and rank to variables
+        if rank:
+            ranking = rank.group(2)
+            name = rank.group(1)
+            # create dictionary of name/rank pairs
+            if name not in baby_dict.keys():
+                baby_dict[name] = ranking
+            # if name exists in dict, assign key a value of highest rank found
+            elif int(ranking) < int(baby_dict[name]):
+                baby_dict[name] = ranking
+    # clear out names list
+    names = []
+    # create list of tuples from dictionary
+    dict_list = baby_dict.items()
+    # iterate through tuple list and append stringified name/rank pairs to list
+    for key, value in dict_list:
+        pair = key + str(value)
+        names.append(pair)
+    # insert year at beginning of names list
+    names.insert(0, year)
+    # return names list from function
     return names
 
 
@@ -82,7 +140,21 @@ def main(args):
     # Use the create_summary flag to decide whether to print the list
     # or to write the list to a summary file (e.g. `baby1990.html.summary`).
 
-    # +++your code here+++
+    # iterate through file_list of filenames passed via cmd line arguments
+    for file in file_list:
+        # pass each filename to extract_names function
+        baby_names = extract_names(file)
+        # format list returned from extract_names
+        text = '\n'.join(baby_names)
+        # validation for create_summary boolean
+        if create_summary:
+            # create file with specified filename
+            filename = file + '.summary'
+            with open(filename, 'w') as f:
+                f.write(text)
+        # print to console if create_summary = false
+        else:
+            print(text)
 
 
 if __name__ == '__main__':
